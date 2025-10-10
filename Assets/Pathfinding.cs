@@ -63,7 +63,7 @@ public class Pathfinding : MonoBehaviour
 
     List<Node> RetracePath(Node startNode, Node endNode)
     {
-        List<Node> path = new List<Node>();
+        List<Node> path = new();
         Node currentNode = endNode;
 
         while (currentNode != startNode)
@@ -77,7 +77,7 @@ public class Pathfinding : MonoBehaviour
 
     List<Node> GetNeighbours(Node node)
     {
-        List<Node> neighbours = new List<Node>();
+        List<Node> neighbours = new();
         Node[,] grid = gridManager.GetGrid();
 
         for (int x = -1; x <= 1; x++)
