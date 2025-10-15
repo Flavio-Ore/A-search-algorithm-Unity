@@ -4,25 +4,31 @@ using UnityEngine;
 public class EnemyAI : MonoBehaviour
 {
     public Transform player;
-    public float moveSpeed = 5f;
+    public float moveSpeed = 3f;
     public float pathUpdateInterval = 0.5f;
 
-    private Pathfinding pathfinding;
+    private IPathfinding pathfinding;
     private List<Node> currentPath;
     private int currentPathIndex = 0;
     private float pathUpdateTimer;
 
     void Start()
     {
-        pathfinding = Object.FindFirstObjectByType<Pathfinding>();
+        // Try to find either Pathfinding (A*) or DijkstraPathfinding
+        pathfinding = FindObjectOfType<Pathfinding>() as IPathfinding;
 
         if (pathfinding == null)
         {
-            Debug.LogError("Pathfinding not found!");
+            pathfinding = FindObjectOfType<DijkstraPathfinding>() as IPathfinding;
+        }
+
+        if (pathfinding == null)
+        {
+            Debug.LogError("No pathfinding component found! Add either Pathfinding or DijkstraPathfinding to GridManager.");
         }
         else
         {
-            Debug.Log("Pathfinding found!");
+            Debug.Log("Pathfinding found: " + pathfinding.GetType().Name);
         }
 
         if (player == null)

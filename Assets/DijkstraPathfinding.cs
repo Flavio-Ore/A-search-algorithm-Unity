@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
 
-public class Pathfinding : MonoBehaviour, IPathfinding
+public class DijkstraPathfinding : MonoBehaviour, IPathfinding
 {
     public GridManager gridManager;
 
@@ -16,44 +15,77 @@ public class Pathfinding : MonoBehaviour, IPathfinding
         Node startNode = gridManager.GetNodeFromWorldPosition(startPos);
         Node targetNode = gridManager.GetNodeFromWorldPosition(targetPos);
 
-        List<Node> openSet = new List<Node>();
-        HashSet<Node> closedSet = new HashSet<Node>();
-        openSet.Add(startNode);
+        List<Node> unvisitedNodes = new List<Node>();
+        HashSet<Node> visitedNodes = new HashSet<Node>();
 
-        while (openSet.Count > 0)
+        // Initialize all nodes
+        Node[,] grid = gridManager.GetGrid();
+        foreach (Node node in grid)
         {
-            Node currentNode = openSet[0];
-            for (int i = 1; i < openSet.Count; i++)
+            node.gCost = int.MaxValue;
+            node.parent = null;
+            if (node.walkable)
+                unvisitedNodes.Add(node);
+        }
+
+        // Force start node to be walkable if it's not
+        if (!startNode.walkable)
+        {
+            startNode.walkable = true;
+            unvisitedNodes.Add(startNode);
+        }
+
+        // Force target node to be walkable if it's not
+        if (!targetNode.walkable)
+        {
+            targetNode.walkable = true;
+            if (!unvisitedNodes.Contains(targetNode))
+                unvisitedNodes.Add(targetNode);
+        }
+
+        startNode.gCost = 0;
+
+        while (unvisitedNodes.Count > 0)
+        {
+            // Find node with smallest distance
+            Node currentNode = null;
+            int lowestCost = int.MaxValue;
+
+            foreach (Node node in unvisitedNodes)
             {
-                if (openSet[i].fCost < currentNode.fCost ||
-                    openSet[i].fCost == currentNode.fCost && openSet[i].hCost < currentNode.hCost)
+                if (node.gCost < lowestCost)
                 {
-                    currentNode = openSet[i];
+                    lowestCost = node.gCost;
+                    currentNode = node;
                 }
             }
 
-            openSet.Remove(currentNode);
-            closedSet.Add(currentNode);
+            if (currentNode == null || currentNode.gCost == int.MaxValue)
+            {
+                break;
+            }
 
+            unvisitedNodes.Remove(currentNode);
+            visitedNodes.Add(currentNode);
+
+            // If we reached the target, reconstruct path
             if (currentNode == targetNode)
             {
                 return RetracePath(startNode, targetNode);
             }
 
+            // Check all neighbors
             foreach (Node neighbour in GetNeighbours(currentNode))
             {
-                if (!neighbour.walkable || closedSet.Contains(neighbour))
+                if (!neighbour.walkable || visitedNodes.Contains(neighbour))
                     continue;
 
-                int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
-                if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
-                {
-                    neighbour.gCost = newMovementCostToNeighbour;
-                    neighbour.hCost = GetDistance(neighbour, targetNode);
-                    neighbour.parent = currentNode;
+                int newDistanceToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
 
-                    if (!openSet.Contains(neighbour))
-                        openSet.Add(neighbour);
+                if (newDistanceToNeighbour < neighbour.gCost)
+                {
+                    neighbour.gCost = newDistanceToNeighbour;
+                    neighbour.parent = currentNode;
                 }
             }
         }
@@ -63,7 +95,7 @@ public class Pathfinding : MonoBehaviour, IPathfinding
 
     List<Node> RetracePath(Node startNode, Node endNode)
     {
-        List<Node> path = new();
+        List<Node> path = new List<Node>();
         Node currentNode = endNode;
 
         while (currentNode != startNode)
@@ -77,7 +109,7 @@ public class Pathfinding : MonoBehaviour, IPathfinding
 
     List<Node> GetNeighbours(Node node)
     {
-        List<Node> neighbours = new();
+        List<Node> neighbours = new List<Node>();
         Node[,] grid = gridManager.GetGrid();
 
         for (int x = -1; x <= 1; x++)

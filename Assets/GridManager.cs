@@ -29,7 +29,7 @@ public class GridManager : MonoBehaviour
                 worldPosition.y = 0.5f; // Set to ground level
 
                 // Check if this position has an obstacle
-                bool walkable = !Physics.CheckSphere(worldPosition, nodeSize * 0.3f, unwalkableMask);
+                bool walkable = !Physics.CheckSphere(worldPosition, nodeSize * 0.2f, unwalkableMask);
 
                 grid[x, y] = new Node(walkable, worldPosition, x, y);
             }

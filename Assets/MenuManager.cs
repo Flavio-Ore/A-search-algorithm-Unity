@@ -5,12 +5,12 @@ public class MenuManager : MonoBehaviour
 {
     public void LoadLevel1()
     {
-        SceneManager.LoadScene("Level1");
+        SceneManager.LoadScene("LEVEL1-A-STAR");
     }
 
     public void LoadLevel2()
     {
-        SceneManager.LoadScene("Level2");
+        SceneManager.LoadScene("LEVEL2-DIJKSTRA");
     }
 
     public void QuitGame()
